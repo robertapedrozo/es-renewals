@@ -178,7 +178,7 @@ input,textarea,select{font-family:inherit;font-size:inherit}
 
 <script>
 // ═══════════════════════════════════════════════════════════════
-// SUPABASE CREDENTIALS (PRE-FILLED FOR YOU)
+// SUPABASE CREDENTIALS (PRE-FILLED)
 // ═══════════════════════════════════════════════════════════════
 const SUPABASE_URL = 'https://ztmsfkfguhrcczxrfzwk.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp0bXNma2ZndWhyY2N6eHJmendrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA4Njg0NjgsImV4cCI6MjEwNjQ0NDQ2OH0.V0OTplF6rWMCEjh0MIIEBjFO1ToKRXCkDdeA4ewI9ow';
@@ -232,7 +232,14 @@ const U={
   fmtMoney(n){if(n==null||isNaN(n))return"—";return"$"+Number(n).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:0})},
   esc(s){if(!s)return"";return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))},
   debounce(fn,w){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),w)}},
-  parseDate(s){if(!s)return"";let d=new Date(s);if(!isNaN(d.getTime()))return d.toISOString().split("T")[0];const m=s.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);if(m){const[,mo,da,y]=m;return`${y.length===2?"20"+y:y}-${mo.padStart(2,"0")}-${da.padStart(2,"0")}`}return""}
+  parseDate(s){
+    if(!s) return null;
+    let d=new Date(s);
+    if(!isNaN(d.getTime())) return d.toISOString().split("T")[0];
+    const m=s.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+    if(m){const[,mo,da,y]=m;return `${y.length===2?"20"+y:y}-${mo.padStart(2,"0")}-${da.padStart(2,"0")}`}
+    return null;
+  }
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -260,7 +267,7 @@ const DB={
     const [{data:renewals,error:e1},{data:logs,error:e2},{data:settings,error:e3},{data:templates,error:e4}]=await Promise.all([
       sb.from("renewals").select("*").eq("user_id",uid).order("renewal_date",{ascending:true}),
       sb.from("activity_logs").select("*").eq("user_id",uid).order("created_at",{ascending:true}),
-      sb.from("user_settings").select("*").eq("user_id",uid).single(),
+      sb.from("user_settings").select("*").eq("user_id",uid).maybeSingle(),
       sb.from("email_templates").select("*").eq("user_id",uid)
     ]);
     if(e1)console.error("Fetch renewals error:",e1);
@@ -349,20 +356,82 @@ const DB={
     const reader=new FileReader();
     reader.onload=async(e)=>{
       try{
-        const text=e.target.result;const rows=text.split(/\r?\n/).filter(r=>r.trim());
-        if(rows.length<2)throw new Error("CSV is empty");
-        const headers=rows[0].split(",").map(h=>h.trim().toLowerCase());
-        const uid=App.user.id;const newR=[];
-        for(let i=1;i<rows.length;i++){
-          const vals=rows[i].split(",").map(v=>v.trim());const obj={};
-          headers.forEach((h,idx)=>{obj[h]=vals[idx]||""});
-          newR.push({id:U.uuid(),user_id:uid,insured_name:obj["insured name"]||obj["insured"]||obj["name"]||`Imported ${i}`,coverage_type:obj["coverage type"]||obj["coverage"]||"",renewal_date:U.parseDate(obj["renewal date"]||obj["expiration date"]||obj["exp date"]||""),owner:"Me",current_stage:"assigned",next_action:"Check inbox for renewal offer",last_known_offer_location:"Unknown",expiring_premium:parseFloat((obj["expiring premium"]||obj["current premium"]||obj["premium"]||"0").replace(/[^0-9.]/g,""))||0,offered_premium:0,decision:"Pending",override_reason:"",expiring_deductible:"",offered_deductible:"",key_coverage_changes:"",remarketing_log:"",broker_name:obj["broker name"]||obj["broker"]||"",date_presented:null,signature_status:"Not Sent",payment_status:"Not Received",mortgage_billed:false,financing_checklist:"",binder_received:false,invoice_received:false,late_requirement_flag:false,late_req_date:null,ezlynx_updated:true,financial_packet_sent:false,notes:obj["notes"]||"",date_assigned:new Date().toISOString().split("T")[0],created_at:new Date().toISOString(),updated_at:new Date().toISOString()});
+        const text=e.target.result;
+        // ROBUST CSV PARSER (Handles commas inside quotes)
+        const rows=[]; let row=[]; let val=""; let inQuotes=false;
+        for(let i=0;i<text.length;i++){
+          const char=text[i]; const nextChar=text[i+1];
+          if(char==='"'){
+            if(inQuotes && nextChar==='"'){ val+='"'; i++; }
+            else { inQuotes=!inQuotes; }
+          } else if(char===',' && !inQuotes){
+            row.push(val.trim()); val="";
+          } else if((char==='\r' || char==='\n') && !inQuotes){
+            if(val || row.length>0){ row.push(val.trim()); rows.push(row); row=[]; val=""; }
+            if(char==='\r' && nextChar==='\n') i++;
+          } else { val+=char; }
+        }
+        if(val || row.length>0){ row.push(val.trim()); rows.push(row); }
+        
+        const cleanRows=rows.filter(r=>r.length>0 && (r.length>1 || r[0]!==""));
+        if(cleanRows.length<2) throw new Error("CSV is empty or invalid");
+        
+        const headers=cleanRows[0].map(h=>h.toLowerCase().replace(/^"|"$/g,""));
+        const uid=App.user.id; const newR=[];
+        
+        for(let i=1;i<cleanRows.length;i++){
+          const vals=cleanRows[i]; const obj={};
+          headers.forEach((h,idx)=>{ obj[h]=vals[idx]!==undefined ? vals[idx].replace(/^"|"$/g,"") : ""; });
+          
+          let stage = (obj["current stage"] || "assigned").toLowerCase().replace(/\s+/g, "_");
+          const validStages = STAGES.map(s => s.id);
+          if (!validStages.includes(stage)) stage = "assigned";
+
+          const parsedDate = U.parseDate(obj["renewal date"] || obj["expiration date"] || obj["exp date"] || "");
+          
+          newR.push({
+            id:U.uuid(), user_id:uid,
+            insured_name: obj["insured name"] || obj["insured"] || obj["name"] || `Imported ${i}`,
+            coverage_type: obj["coverage type"] || obj["coverage"] || "",
+            renewal_date: parsedDate || null,
+            owner: "Me",
+            current_stage: stage,
+            next_action: obj["next action"] || "Check inbox for renewal offer",
+            last_known_offer_location: "Unknown",
+            expiring_premium: parseFloat((obj["expiring premium"] || obj["current premium"] || obj["premium"] || "0").replace(/[^0-9.]/g,"")) || 0,
+            offered_premium: 0,
+            decision: "Pending",
+            override_reason: "",
+            expiring_deductible: "",
+            offered_deductible: "",
+            key_coverage_changes: "",
+            remarketing_log: "",
+            broker_name: obj["broker name"] || obj["broker"] || "",
+            date_presented: null,
+            signature_status: "Not Sent",
+            payment_status: "Not Received",
+            mortgage_billed: false,
+            financing_checklist: "",
+            binder_received: false,
+            invoice_received: false,
+            late_requirement_flag: false,
+            late_req_date: null,
+            ezlynx_updated: true,
+            financial_packet_sent: false,
+            notes: obj["notes"] || "",
+            date_assigned: new Date().toISOString().split("T")[0],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
         }
         const{error}=await sb.from("renewals").insert(newR);
-        if(error)throw error;
-        await DB.fetchAll();UI.renderAll();
+        if(error) throw error;
+        await DB.fetchAll(); UI.renderAll();
         UI.toast(`Imported ${newR.length} renewals from CSV`,"success");
-      }catch(err){UI.toast("CSV import failed: "+err.message,"error")}
+      }catch(err){
+        console.error(err);
+        UI.toast("CSV import failed: "+err.message,"error");
+      }
     };
     reader.readAsText(file);
   }
@@ -595,7 +664,19 @@ const UI={
     ov.addEventListener("click",e=>{if(e.target===ov)UI.closeModal()});
     ov.querySelectorAll("[data-action='close']").forEach(b=>b.addEventListener("click",UI.closeModal));
     ov.querySelectorAll("[data-action='delete']").forEach(b=>b.addEventListener("click",async()=>{if(confirm("Delete this renewal?")){await Act.deleteRenewal(id);UI.closeModal()}}));
-    ov.querySelectorAll("[data-action='save']").forEach(b=>b.addEventListener("click",async()=>{const ch={};ov.querySelectorAll("[data-field]").forEach(el=>{const f=el.dataset.field;if(el.type==="checkbox")ch[f]=el.checked;else if(el.type==="number")ch[f]=parseFloat(el.value)||0;else ch[f]=el.value});await Act.updateRenewal(id,ch);UI.closeModal();UI.toast("Saved","success")}));
+    ov.querySelectorAll("[data-action='save']").forEach(b=>b.addEventListener("click",async()=>{
+      const ch={};
+      ov.querySelectorAll("[data-field]").forEach(el=>{
+        const f=el.dataset.field;
+        if(el.type==="checkbox") ch[f]=el.checked;
+        else if(el.type==="number") ch[f]=parseFloat(el.value)||0;
+        else if(el.type==="date") ch[f]=el.value||null; // FIX: empty date becomes null
+        else ch[f]=el.value;
+      });
+      await Act.updateRenewal(id,ch);
+      UI.closeModal();
+      UI.toast("Saved","success");
+    }));
     ov.querySelectorAll(".modal-tab").forEach(tab=>{tab.addEventListener("click",()=>{ov.querySelectorAll(".modal-tab").forEach(t=>t.classList.remove("active"));ov.querySelectorAll(".tab-content").forEach(c=>c.classList.remove("active"));tab.classList.add("active");ov.querySelector(`.tab-content[data-tab="${tab.dataset.tab}"]`).classList.add("active")})});
     const lb=ov.querySelector("#btn-log-act");if(lb)lb.addEventListener("click",async()=>{const action=prompt("Activity (e.g., 'Email sent to broker'):");if(action){const details=prompt("Details (optional):")||"";await DB.logActivity(id,action,details);UI.closeModal();UI.openEditModal(id);UI.toast("Activity logged","success")}});
   },
