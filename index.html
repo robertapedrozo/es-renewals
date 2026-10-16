@@ -1,17 +1,647 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2575.7">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E&S Renewal Command Center</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg-primary:#ffffff;--bg-secondary:#f8f9fa;--bg-card:#ffffff;--bg-column:#f1f3f5;--bg-input:#ffffff;--text-primary:#1a1a2e;--text-secondary:#6c757d;--text-muted:#adb5bd;--border:#dee2e6;--border-strong:#ced4da;--accent:#4361ee;--accent-hover:#3651d4;--success:#06d6a0;--warning:#ff9f1c;--danger:#e71d36;--info:#4cc9f0;--shadow:0 2px 8px rgba(0,0,0,0.08);--shadow-hover:0 4px 16px rgba(0,0,0,0.12);--radius:8px;--radius-sm:4px;--transition:0.2s ease}
+[data-theme="dark"]{--bg-primary:#0f0f1a;--bg-secondary:#1a1a2e;--bg-card:#16213e;--bg-column:#1a1a2e;--bg-input:#16213e;--text-primary:#e8e8e8;--text-secondary:#a0a0b0;--text-muted:#6c6c7e;--border:#2a2a4a;--border-strong:#3a3a5a;--accent:#4cc9f0;--accent-hover:#3ab8df;--shadow:0 2px 8px rgba(0,0,0,0.4);--shadow-hover:0 4px 16px rgba(0,0,0,0.5)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg-primary);color:var(--text-primary);line-height:1.5;transition:background var(--transition),color var(--transition);min-height:100vh}
+button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit}
+input,textarea,select{font-family:inherit;font-size:inherit}
+.app-header{background:var(--bg-secondary);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+.app-logo{font-size:18px;font-weight:700;color:var(--accent);white-space:nowrap}
+.app-logo span{color:var(--text-primary)}
+.search-box{flex:1;max-width:400px;position:relative}
+.search-box input{width:100%;padding:8px 12px 8px 36px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg-input);color:var(--text-primary);font-size:14px;transition:border-color var(--transition)}
+.search-box input:focus{outline:none;border-color:var(--accent)}
+.search-box::before{content:"🔍";position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:0.5;font-size:14px}
+.header-actions{display:flex;gap:8px;margin-left:auto}
+.app-nav{background:var(--bg-secondary);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.view-tabs{display:flex;gap:4px}
+.view-tab{padding:6px 14px;border-radius:var(--radius);font-size:13px;font-weight:500;color:var(--text-secondary);transition:all var(--transition)}
+.view-tab:hover{background:var(--bg-column);color:var(--text-primary)}
+.view-tab.active{background:var(--accent);color:white}
+.nav-divider{width:1px;height:20px;background:var(--border);margin:0 8px}
+.quick-filters{display:flex;gap:6px;flex-wrap:wrap}
+.filter-btn{padding:5px 10px;border-radius:var(--radius);font-size:12px;font-weight:500;border:1px solid var(--border);color:var(--text-secondary);transition:all var(--transition)}
+.filter-btn:hover{border-color:var(--accent);color:var(--accent)}
+.filter-btn.active{background:var(--accent);color:white;border-color:var(--accent)}
+.filter-btn.danger{color:var(--danger);border-color:var(--danger)}
+.filter-btn.danger.active{background:var(--danger);color:white}
+.app-main{padding:20px;min-height:calc(100vh - 120px)}
+.btn{padding:8px 14px;border-radius:var(--radius);font-size:13px;font-weight:500;transition:all var(--transition);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-primary{background:var(--accent);color:white}
+.btn-primary:hover{background:var(--accent-hover)}
+.btn-secondary{background:transparent;color:var(--text-primary);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--bg-column)}
+.btn-danger{background:var(--danger);color:white}
+.btn-danger:hover{opacity:0.9}
+.btn-ghost{color:var(--text-secondary)}
+.btn-ghost:hover{background:var(--bg-column);color:var(--text-primary)}
+.btn-icon{padding:6px 10px;font-size:14px}
+.board{display:flex;gap:12px;overflow-x:auto;padding-bottom:20px;min-height:calc(100vh - 200px)}
+.column{background:var(--bg-column);border-radius:var(--radius);min-width:280px;width:280px;flex-shrink:0;display:flex;flex-direction:column;max-height:calc(100vh - 200px)}
+.column-header{padding:12px;border-bottom:3px solid var(--col-color,var(--border));display:flex;align-items:center;justify-content:space-between;font-weight:600;font-size:13px}
+.column-count{background:var(--bg-card);color:var(--text-secondary);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.column-body{padding:8px;overflow-y:auto;flex:1;min-height:100px}
+.column-body.drag-over{background:var(--bg-primary);outline:2px dashed var(--accent);outline-offset:-4px}
+.card{background:var(--bg-card);border-radius:var(--radius);padding:10px 12px;margin-bottom:8px;border-left:4px solid var(--col-color,var(--border));box-shadow:var(--shadow);cursor:pointer;transition:all var(--transition);position:relative}
+.card:hover{box-shadow:var(--shadow-hover);transform:translateY(-1px)}
+.card.dragging{opacity:0.4}
+.card-title{font-weight:600;font-size:13px;margin-bottom:6px;color:var(--text-primary);word-break:break-word}
+.card-meta{display:flex;flex-wrap:wrap;gap:6px;font-size:11px;margin-bottom:6px}
+.card-badge{padding:2px 6px;border-radius:var(--radius-sm);font-weight:600;display:inline-flex;align-items:center;gap:3px}
+.badge-danger{background:rgba(231,29,54,0.15);color:var(--danger)}
+.badge-warning{background:rgba(255,159,28,0.15);color:var(--warning)}
+.badge-success{background:rgba(6,214,160,0.15);color:var(--success)}
+.badge-info{background:rgba(76,201,240,0.15);color:var(--info)}
+.badge-neutral{background:var(--bg-column);color:var(--text-secondary)}
+.card-action{font-size:11px;color:var(--text-secondary);font-style:italic;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-indicators{position:absolute;top:6px;right:6px;display:flex;gap:3px;font-size:12px}
+.indicator{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px}
+.indicator-late{background:var(--danger);color:white}
+.indicator-ezlynx{background:var(--warning);color:white}
+.list-table{width:100%;border-collapse:collapse;background:var(--bg-card);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.list-table th{background:var(--bg-column);padding:10px 12px;text-align:left;font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap}
+.list-table th:hover{color:var(--accent)}
+.list-table td{padding:10px 12px;font-size:13px;border-bottom:1px solid var(--border)}
+.list-table tr{cursor:pointer;transition:background var(--transition)}
+.list-table tbody tr:hover{background:var(--bg-column)}
+.row-late{background:rgba(231,29,54,0.08)!important}
+.row-warning{background:rgba(255,159,28,0.08)!important}
+.stage-pill{display:inline-block;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;color:white;white-space:nowrap}
+.calendar-container{background:var(--bg-card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
+.calendar-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.calendar-title{font-size:20px;font-weight:700}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.calendar-day-header{padding:8px;text-align:center;font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase}
+.calendar-cell{min-height:80px;padding:6px;background:var(--bg-secondary);border-radius:var(--radius-sm);border:1px solid transparent;transition:all var(--transition)}
+.calendar-cell.other-month{opacity:0.3}
+.calendar-cell.today{border-color:var(--accent)}
+.calendar-cell.has-renewals{cursor:pointer}
+.calendar-cell.has-renewals:hover{background:var(--bg-column)}
+.calendar-date{font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px}
+.calendar-renewal{font-size:10px;padding:2px 5px;border-radius:3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:white;font-weight:500}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:var(--bg-card);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);border-left:4px solid var(--accent)}
+.stat-label{font-size:12px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.stat-value{font-size:32px;font-weight:700;color:var(--text-primary)}
+.stat-card.danger{border-left-color:var(--danger)}
+.stat-card.warning{border-left-color:var(--warning)}
+.stat-card.success{border-left-color:var(--success)}
+.stats-section{background:var(--bg-card);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:16px}
+.stats-section h3{font-size:16px;font-weight:600;margin-bottom:16px;color:var(--text-primary)}
+.pipeline-bar{display:flex;align-items:center;gap:12px;margin-bottom:8px;font-size:13px}
+.pipeline-label{width:180px;flex-shrink:0;color:var(--text-secondary);font-size:12px}
+.pipeline-track{flex:1;height:20px;background:var(--bg-column);border-radius:10px;overflow:hidden}
+.pipeline-fill{height:100%;border-radius:10px;transition:width 0.5s ease;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;color:white;font-size:11px;font-weight:600}
+.pipeline-count{width:40px;text-align:right;font-weight:600;color:var(--text-primary)}
+.priority-list{list-style:none}
+.priority-item{padding:12px;background:var(--bg-secondary);border-radius:var(--radius);margin-bottom:8px;border-left:4px solid var(--danger);cursor:pointer;transition:all var(--transition)}
+.priority-item:hover{background:var(--bg-column)}
+.priority-rank{display:inline-block;width:24px;height:24px;border-radius:50%;background:var(--danger);color:white;text-align:center;line-height:24px;font-weight:700;font-size:12px;margin-right:10px}
+.priority-title{font-weight:600;font-size:14px;margin-bottom:4px}
+.priority-reasons{font-size:12px;color:var(--text-secondary)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;animation:fadeIn 0.2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-content{background:var(--bg-card);border-radius:var(--radius);width:100%;max-width:700px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:slideUp 0.2s ease}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-header h2{font-size:18px;font-weight:600}
+.modal-close{font-size:24px;color:var(--text-secondary);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.modal-close:hover{background:var(--bg-column);color:var(--text-primary)}
+.modal-body{padding:20px;overflow-y:auto;flex:1}
+.modal-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+.modal-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:20px;overflow-x:auto}
+.modal-tab{padding:8px 14px;font-size:13px;font-weight:500;color:var(--text-secondary);border-bottom:2px solid transparent;white-space:nowrap;transition:all var(--transition)}
+.modal-tab:hover{color:var(--text-primary)}
+.modal-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-field{display:flex;flex-direction:column;gap:4px}
+.form-field.full{grid-column:1/-1}
+.form-field label{font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.3px}
+.form-field input,.form-field textarea,.form-field select{padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-primary);font-size:13px;transition:border-color var(--transition)}
+.form-field input:focus,.form-field textarea:focus,.form-field select:focus{outline:none;border-color:var(--accent)}
+.form-field textarea{resize:vertical;min-height:80px;font-family:inherit}
+.form-field input[readonly]{background:var(--bg-column);color:var(--text-secondary);cursor:not-allowed}
+.checkbox-field{display:flex;align-items:center;gap:8px;padding:8px 0}
+.checkbox-field input[type="checkbox"]{width:18px;height:18px;cursor:pointer}
+.checkbox-field label{text-transform:none;font-size:13px;color:var(--text-primary);cursor:pointer}
+.warning-box{background:rgba(255,159,28,0.1);border:1px solid var(--warning);border-radius:var(--radius);padding:10px 12px;font-size:12px;color:var(--warning);margin-top:8px}
+.timeline{list-style:none;border-left:2px solid var(--border);padding-left:20px;margin-left:8px}
+.timeline-item{position:relative;padding-bottom:16px}
+.timeline-item::before{content:"";position:absolute;left:-25px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--bg-card)}
+.timeline-date{font-size:11px;color:var(--text-muted);margin-bottom:2px}
+.timeline-action{font-size:13px;font-weight:500;color:var(--text-primary)}
+.timeline-details{font-size:12px;color:var(--text-secondary);margin-top:2px}
+#toast-container{position:fixed;bottom:20px;right:20px;z-index:2000;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--bg-card);border-left:4px solid var(--accent);padding:12px 16px;border-radius:var(--radius);box-shadow:var(--shadow-hover);min-width:250px;max-width:400px;font-size:13px;animation:slideIn 0.3s ease}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+.toast.success{border-left-color:var(--success)}
+.toast.error{border-left-color:var(--danger)}
+.toast.warning{border-left-color:var(--warning)}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-secondary)}
+.empty-state-icon{font-size:48px;margin-bottom:16px;opacity:0.5}
+.empty-state h3{font-size:18px;margin-bottom:8px;color:var(--text-primary)}
+.empty-state p{font-size:14px;margin-bottom:20px}
+.login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg-primary);padding:20px}
+.login-box{background:var(--bg-card);border-radius:var(--radius);padding:40px;box-shadow:var(--shadow-hover);width:100%;max-width:400px;text-align:center}
+.login-box h1{font-size:24px;margin-bottom:8px;color:var(--accent)}
+.login-box p{color:var(--text-secondary);margin-bottom:24px;font-size:14px}
+.login-box .form-field{text-align:left;margin-bottom:14px}
+.login-box .btn-primary{width:100%;justify-content:center;padding:12px;font-size:15px;margin-top:8px}
+.login-error{color:var(--danger);font-size:13px;margin-top:12px;min-height:20px}
+.loading-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg-primary);flex-direction:column;gap:16px}
+.spinner{width:40px;height:40px;border:4px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{color:var(--text-secondary);font-size:14px}
+@media(max-width:768px){.app-header{flex-wrap:wrap;padding:10px}.app-logo{font-size:16px}.search-box{order:3;max-width:100%;flex-basis:100%}.header-actions .btn span{display:none}.app-nav{padding:8px 10px}.view-tab,.filter-btn{font-size:11px;padding:5px 8px}.app-main{padding:12px}.column{min-width:260px;width:260px}.form-grid{grid-template-columns:1fr}.stats-grid{grid-template-columns:1fr 1fr}.calendar-cell{min-height:50px}.calendar-renewal{font-size:9px}.pipeline-label{width:120px;font-size:11px}}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--text-muted)}
+</style>
 </head>
 <body>
-<p class="p1">const SUPABASE_URL = 'https://ztmsfkfguhrcczxrfzwk.supabase.co/rest/v1/';</p>
-<p class="p1">const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp0bXNma2ZndWhyY2N6eHJmendrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA4Njg0NjgsImV4cCI6MjEwNjQ0NDQ2OH0.V0OTplF6rWMCEjh0MIIEBjFO1ToKRXCkDdeA4ewI9ow';</p>
+
+<div id="app-root"></div>
+<div id="modal-root"></div>
+<div id="toast-container"></div>
+<input type="file" id="file-restore" accept=".json" style="display:none">
+<input type="file" id="file-import" accept=".csv" style="display:none">
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// SUPABASE CREDENTIALS (PRE-FILLED FOR YOU)
+// ═══════════════════════════════════════════════════════════════
+const SUPABASE_URL = 'https://ztmsfkfguhrcczxrfzwk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp0bXNma2ZndWhyY2N6eHJmendrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA4Njg0NjgsImV4cCI6MjEwNjQ0NDQ2OH0.V0OTplF6rWMCEjh0MIIEBjFO1ToKRXCkDdeA4ewI9ow';
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ═══════════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════════
+const STAGES=[
+{id:"assigned",label:"1. Assigned",color:"#6c757d",defaultAction:"Check inbox for renewal offer"},
+{id:"awaiting_offer",label:"2. Awaiting Offer",color:"#ff9f1c",defaultAction:"Follow up with broker/carrier"},
+{id:"reviewing_offer",label:"3. Reviewing Offer",color:"#4361ee",defaultAction:"Compare premium, coverage, deductibles"},
+{id:"decision_made",label:"4. Decision Made",color:"#7209b7",defaultAction:"Prepare next steps"},
+{id:"remarketing",label:"5. Remarketing",color:"#f72585",defaultAction:"Follow up on outstanding quotes"},
+{id:"comparing_options",label:"6. Comparing Options",color:"#4cc9f0",defaultAction:"Select best option / present to insured"},
+{id:"preparing_docs",label:"7. Preparing Documents",color:"#4895ef",defaultAction:"Complete ACORD/supplemental forms"},
+{id:"presented",label:"8. Presented to Insured",color:"#560bad",defaultAction:"Follow up for signature & payment"},
+{id:"binding_requested",label:"9. Binding Requested",color:"#3a0ca3",defaultAction:"Follow up with broker on binder/invoice"},
+{id:"bound",label:"10. Bound",color:"#2ec4b6",defaultAction:"Begin post-bind checklist"},
+{id:"post_bind",label:"11. Post-Bind",color:"#e71d36",defaultAction:"Complete remaining checklist items"},
+{id:"closed_renewed",label:"12. Closed - Renewed",color:"#06d6a0",defaultAction:"— Completed —"},
+{id:"closed_not_renewed",label:"13. Closed - Not Renewed",color:"#adb5bd",defaultAction:"— Completed —"}
+];
+const TERMINAL=["closed_renewed","closed_not_renewed"];
+const DEFAULT_TEMPLATES=[
+{name:"Missing Offer Follow-Up",subject:"Follow-Up: Renewal Offer for {{insuredName}}",body:"Hi,\n\nI'm following up on the renewal offer for {{insuredName}} (policy expiring {{renewalDate}}). We have not yet received the renewal paperwork.\n\nCould you please send the offer and supporting documents at your earliest convenience?\n\nThank you,\n[Your Name]",category:"broker"},
+{name:"Quote Presentation",subject:"Renewal Options for {{insuredName}} - Effective {{renewalDate}}",body:"Hi {{insuredName}},\n\nPlease find attached the renewal options for your policy expiring {{renewalDate}}.\n\nSummary:\n- Current Premium: ${{expiringPremium}}\n- Offered Premium: ${{offeredPremium}}\n- Change: {{premiumChangePercent}}%\n\nPlease review and let us know your preferred option.\n\nBest regards,\n[Your Name]",category:"insured"},
+{name:"Signature & Payment Reminder",subject:"Action Required: Renewal for {{insuredName}}",body:"Hi {{insuredName}},\n\nThis is a friendly reminder that we are still waiting on your signature and payment for the renewal of your policy expiring {{renewalDate}}.\n\nTo avoid any lapse in coverage, please complete the attached documents and submit payment at your earliest convenience.\n\nBest regards,\n[Your Name]",category:"insured"}
+];
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+const App={
+  user:null,
+  state:{renewals:[],activityLogs:{},settings:{theme:"light",default_view:"board",commission_rate:0.15,follow_up_days:3},templates:[],currentView:"board",activeFilter:null,searchQuery:"",calendarDate:new Date(),sortField:"renewal_date",sortDir:"asc"},
+  undoStack:[]
+};
+
+// ═══════════════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════════════
+const U={
+  uuid(){return crypto.randomUUID?crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==="x"?r:(r&0x3|0x8)).toString(16)})},
+  today(){const d=new Date();d.setHours(0,0,0,0);return d},
+  daysUntil(s){if(!s)return null;const t=new Date(s);t.setHours(0,0,0,0);return Math.round((t-U.today())/(864e5))},
+  daysSince(s){if(!s)return 0;const t=new Date(s);t.setHours(0,0,0,0);return Math.round((U.today()-t)/(864e5))},
+  fmtDate(s){if(!s)return"—";return new Date(s).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})},
+  fmtDT(ts){return new Date(ts).toLocaleString("en-US",{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})},
+  fmtMoney(n){if(n==null||isNaN(n))return"—";return"$"+Number(n).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:0})},
+  esc(s){if(!s)return"";return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))},
+  debounce(fn,w){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),w)}},
+  parseDate(s){if(!s)return"";let d=new Date(s);if(!isNaN(d.getTime()))return d.toISOString().split("T")[0];const m=s.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);if(m){const[,mo,da,y]=m;return`${y.length===2?"20"+y:y}-${mo.padStart(2,"0")}-${da.padStart(2,"0")}`}return""}
+};
+
+// ═══════════════════════════════════════════════════════════════
+// BUSINESS LOGIC
+// ═══════════════════════════════════════════════════════════════
+const L={
+  stage(id){return STAGES.find(s=>s.id===id)||STAGES[0]},
+  pct(r){if(!r.expiring_premium||!r.offered_premium)return null;return((r.offered_premium-r.expiring_premium)/r.expiring_premium)*100},
+  daysInStage(r){const logs=App.state.activityLogs[r.id]||[];const sc=logs.filter(l=>l.action==="Stage changed").pop();if(!sc)return U.daysSince(r.created_at?new Date(r.created_at).toISOString():null);return U.daysSince(new Date(sc.created_at).toISOString())},
+  daysSinceLate(r){if(!r.late_requirement_flag||!r.late_req_date)return 0;return U.daysSince(r.late_req_date)},
+  priority(r){if(TERMINAL.includes(r.current_stage))return 0;if(r.owner==="Producer-Handled")return 0;let s=0;const d=U.daysUntil(r.renewal_date);if(d===null)s+=15;else if(d<0)s+=100;else if(d<7)s+=90;else if(d<14)s+=75;else if(d<30)s+=60;else if(d<60)s+=35;else s+=15;s+=Math.min(L.daysInStage(r)*5,50);const p=L.pct(r);if(p!==null){if(p>20)s+=30;else if(p>10)s+=20;else s+=5}if(r.late_requirement_flag)s+=Math.min(L.daysSinceLate(r)*15,40);if(r.current_stage==="presented"&&r.date_presented){const ds=U.daysSince(r.date_presented);const sig=["Signed Online","Signed In-Person"].includes(r.signature_status);const paid=r.payment_status==="Received"||r.mortgage_billed;if(ds>3&&(!sig||!paid))s+=30}return s},
+  shouldFollowUp(r){if(r.current_stage!=="presented")return false;const sig=["Signed Online","Signed In-Person"].includes(r.signature_status);const paid=r.payment_status==="Received"||r.mortgage_billed;if(sig&&paid)return false;if(!r.date_presented)return false;return U.daysSince(r.date_presented)>=(App.state.settings.follow_up_days||3)},
+  tenPctWarn(r){const p=L.pct(r);return p!==null&&p>=10&&r.decision==="Renew Incumbent"&&!r.override_reason},
+  filter(renewals){let res=renewals.filter(r=>!TERMINAL.includes(r.current_stage));const q=App.state.searchQuery.toLowerCase().trim();if(q)res=res.filter(r=>Object.values(r).some(v=>typeof v==="string"&&v.toLowerCase().includes(q)));const f=App.state.activeFilter;if(f==="late")res=res.filter(r=>{const d=U.daysUntil(r.renewal_date);return(r.current_stage==="awaiting_offer"&&d!==null&&d<=30)||r.late_requirement_flag});else if(f==="postbind")res=res.filter(r=>r.current_stage==="post_bind"&&!r.financial_packet_sent);else if(f==="followup")res=res.filter(r=>L.shouldFollowUp(r));else if(f==="mypipeline")res=res.filter(r=>r.owner==="Me");return res},
+  topPriorities(n=5){return App.state.renewals.map(r=>({...r,_s:L.priority(r)})).filter(r=>r._s>0).sort((a,b)=>b._s-a._s).slice(0,n)},
+  priorityReasons(r){const reasons=[];const d=U.daysUntil(r.renewal_date);if(d!==null){if(d<0)reasons.push(`OVERDUE by ${Math.abs(d)} days`);else if(d<30)reasons.push(`Expires in ${d} days`)}const dis=L.daysInStage(r);if(dis>5)reasons.push(`In "${L.stage(r.current_stage).label}" for ${dis} days`);if(r.late_requirement_flag)reasons.push(`Late requirement ${L.daysSinceLate(r)} day(s) ago`);const p=L.pct(r);if(p!==null&&p>=10)reasons.push(`Premium increase ${p.toFixed(1)}%`);if(L.shouldFollowUp(r))reasons.push(`Unresponsive for ${U.daysSince(r.date_presented)} days`);return reasons}
+};
+
+// ═══════════════════════════════════════════════════════════════
+// DATABASE OPERATIONS (SUPABASE)
+// ═══════════════════════════════════════════════════════════════
+const DB={
+  async fetchAll(){
+    const uid=App.user.id;
+    const [{data:renewals,error:e1},{data:logs,error:e2},{data:settings,error:e3},{data:templates,error:e4}]=await Promise.all([
+      sb.from("renewals").select("*").eq("user_id",uid).order("renewal_date",{ascending:true}),
+      sb.from("activity_logs").select("*").eq("user_id",uid).order("created_at",{ascending:true}),
+      sb.from("user_settings").select("*").eq("user_id",uid).single(),
+      sb.from("email_templates").select("*").eq("user_id",uid)
+    ]);
+    if(e1)console.error("Fetch renewals error:",e1);
+    if(e2)console.error("Fetch logs error:",e2);
+    App.state.renewals=renewals||[];
+    const logMap={};
+    (logs||[]).forEach(l=>{if(!logMap[l.renewal_id])logMap[l.renewal_id]=[];logMap[l.renewal_id].push(l)});
+    App.state.activityLogs=logMap;
+    if(settings)App.state.settings={...App.state.settings,...settings};
+    App.state.templates=templates||[];
+    if(App.state.templates.length===0)await DB.seedTemplates();
+  },
+  async seedTemplates(){
+    const uid=App.user.id;
+    const toInsert=DEFAULT_TEMPLATES.map(t=>({...t,user_id:uid}));
+    const{data,error}=await sb.from("email_templates").insert(toInsert).select();
+    if(!error)App.state.templates=data||[];
+  },
+  async addRenewal(data){
+    const uid=App.user.id;
+    const renewal={...data,user_id:uid,id:U.uuid(),created_at:new Date().toISOString(),updated_at:new Date().toISOString(),date_assigned:new Date().toISOString().split("T")[0]};
+    const{error}=await sb.from("renewals").insert(renewal);
+    if(error){UI.toast("Failed to save: "+error.message,"error");return null}
+    await DB.logActivity(renewal.id,"Created",`Renewal created for ${renewal.insured_name}`);
+    App.state.renewals.push(renewal);
+    return renewal;
+  },
+  async updateRenewal(id,changes){
+    const old=App.state.renewals.find(r=>r.id===id);
+    const oldStage=old?old.current_stage:null;
+    const{error}=await sb.from("renewals").update(changes).eq("id",id);
+    if(error){UI.toast("Failed to save: "+error.message,"error");return}
+    Object.assign(old,changes,{updated_at:new Date().toISOString()});
+    if(changes.current_stage&&changes.current_stage!==oldStage){
+      const ns=L.stage(changes.current_stage);
+      old.next_action=ns.defaultAction;
+      old.ezlynx_updated=false;
+      await DB.logActivity(id,"Stage changed",`${L.stage(oldStage).label} → ${ns.label}`);
+    }
+    if(changes.late_requirement_flag&&!old.late_req_date){
+      old.late_req_date=new Date().toISOString().split("T")[0];
+      await sb.from("renewals").update({late_req_date:old.late_req_date}).eq("id",id);
+    }
+  },
+  async deleteRenewal(id){
+    const r=App.state.renewals.find(r=>r.id===id);
+    const{error}=await sb.from("renewals").delete().eq("id",id);
+    if(error){UI.toast("Failed to delete: "+error.message,"error");return}
+    App.state.renewals=App.state.renewals.filter(r=>r.id!==id);
+    delete App.state.activityLogs[id];
+    if(r)UI.toast(`Deleted: ${r.insured_name}`,"success");
+  },
+  async logActivity(renewalId,action,details=""){
+    const uid=App.user.id;
+    const entry={id:U.uuid(),renewal_id:renewalId,user_id:uid,action,details,created_at:new Date().toISOString()};
+    const{error}=await sb.from("activity_logs").insert(entry);
+    if(!error){if(!App.state.activityLogs[renewalId])App.state.activityLogs[renewalId]=[];App.state.activityLogs[renewalId].push(entry)}
+  },
+  async updateSettings(changes){
+    Object.assign(App.state.settings,changes);
+    await sb.from("user_settings").upsert({user_id:App.user.id,...App.state.settings});
+  },
+  async exportBackup(){
+    const data={exportDate:new Date().toISOString(),renewals:App.state.renewals,activityLogs:App.state.activityLogs,settings:App.state.settings,templates:App.state.templates};
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`es-renewals-backup-${new Date().toISOString().split("T")[0]}.json`;a.click();URL.revokeObjectURL(url);UI.toast("Backup downloaded","success");
+  },
+  async importBackup(file){
+    const reader=new FileReader();
+    reader.onload=async(e)=>{
+      try{
+        const data=JSON.parse(e.target.result);
+        if(!data.renewals||!Array.isArray(data.renewals))throw new Error("Invalid backup");
+        const uid=App.user.id;
+        const renewals=data.renewals.map(r=>({...r,user_id:uid,id:U.uuid()}));
+        const{error}=await sb.from("renewals").insert(renewals);
+        if(error)throw error;
+        await DB.fetchAll();
+        UI.renderAll();
+        UI.toast(`Imported ${renewals.length} renewals`,"success");
+      }catch(err){UI.toast("Import failed: "+err.message,"error")}
+    };
+    reader.readAsText(file);
+  },
+  async importCSV(file){
+    const reader=new FileReader();
+    reader.onload=async(e)=>{
+      try{
+        const text=e.target.result;const rows=text.split(/\r?\n/).filter(r=>r.trim());
+        if(rows.length<2)throw new Error("CSV is empty");
+        const headers=rows[0].split(",").map(h=>h.trim().toLowerCase());
+        const uid=App.user.id;const newR=[];
+        for(let i=1;i<rows.length;i++){
+          const vals=rows[i].split(",").map(v=>v.trim());const obj={};
+          headers.forEach((h,idx)=>{obj[h]=vals[idx]||""});
+          newR.push({id:U.uuid(),user_id:uid,insured_name:obj["insured name"]||obj["insured"]||obj["name"]||`Imported ${i}`,coverage_type:obj["coverage type"]||obj["coverage"]||"",renewal_date:U.parseDate(obj["renewal date"]||obj["expiration date"]||obj["exp date"]||""),owner:"Me",current_stage:"assigned",next_action:"Check inbox for renewal offer",last_known_offer_location:"Unknown",expiring_premium:parseFloat((obj["expiring premium"]||obj["current premium"]||obj["premium"]||"0").replace(/[^0-9.]/g,""))||0,offered_premium:0,decision:"Pending",override_reason:"",expiring_deductible:"",offered_deductible:"",key_coverage_changes:"",remarketing_log:"",broker_name:obj["broker name"]||obj["broker"]||"",date_presented:null,signature_status:"Not Sent",payment_status:"Not Received",mortgage_billed:false,financing_checklist:"",binder_received:false,invoice_received:false,late_requirement_flag:false,late_req_date:null,ezlynx_updated:true,financial_packet_sent:false,notes:obj["notes"]||"",date_assigned:new Date().toISOString().split("T")[0],created_at:new Date().toISOString(),updated_at:new Date().toISOString()});
+        }
+        const{error}=await sb.from("renewals").insert(newR);
+        if(error)throw error;
+        await DB.fetchAll();UI.renderAll();
+        UI.toast(`Imported ${newR.length} renewals from CSV`,"success");
+      }catch(err){UI.toast("CSV import failed: "+err.message,"error")}
+    };
+    reader.readAsText(file);
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+// ACTIONS
+// ═══════════════════════════════════════════════════════════════
+const Act={
+  async addRenewal(data){
+    const r=await DB.addRenewal(data);
+    if(r){UI.renderAll();UI.openEditModal(r.id);UI.toast("Renewal created","success")}
+  },
+  async updateRenewal(id,changes){
+    const old=App.state.renewals.find(r=>r.id===id);
+    const oldStage=old?old.current_stage:null;
+    if(changes.current_stage&&changes.current_stage!==oldStage){
+      const ns=L.stage(changes.current_stage);
+      changes.next_action=ns.defaultAction;
+      changes.ezlynx_updated=false;
+    }
+    if(changes.late_requirement_flag&&old&&!old.late_req_date){
+      changes.late_req_date=new Date().toISOString().split("T")[0];
+    }
+    Object.assign(old||{},changes);
+    UI.renderAll();
+    await DB.updateRenewal(id,changes);
+  },
+  async deleteRenewal(id){
+    await DB.deleteRenewal(id);UI.renderAll();
+  },
+  setView(v){App.state.currentView=v;document.querySelectorAll(".view-tab").forEach(t=>t.classList.toggle("active",t.dataset.view===v));UI.renderView()},
+  setFilter(f){App.state.activeFilter=f==="all"?null:f;document.querySelectorAll(".filter-btn").forEach(b=>b.classList.toggle("active",(f==="all"&&!App.state.activeFilter)||b.dataset.filter===f));UI.renderView()},
+  setSearch(q){App.state.searchQuery=q;UI.renderView()},
+  toggleTheme(){App.state.settings.theme=App.state.settings.theme==="light"?"dark":"light";document.documentElement.setAttribute("data-theme",App.state.settings.theme);document.getElementById("btn-theme").textContent=App.state.settings.theme==="light"?"🌙":"☀️";DB.updateSettings({theme:App.state.settings.theme})}
+};
+
+// ═══════════════════════════════════════════════════════════════
+// UI RENDERING
+// ═══════════════════════════════════════════════════════════════
+const UI={
+  toast(msg,type="info"){const c=document.getElementById("toast-container");const t=document.createElement("div");t.className=`toast ${type}`;t.textContent=msg;c.appendChild(t);setTimeout(()=>{t.style.opacity="0";t.style.transform="translateX(100%)";setTimeout(()=>t.remove(),300)},3000)},
+  showLogin(error=""){
+    document.getElementById("app-root").innerHTML=`
+    <div class="login-screen">
+      <div class="login-box">
+        <h1>🏢 E&S Renewals</h1>
+        <p>Command Center</p>
+        <div class="form-field"><label>Email</label><input type="email" id="login-email" placeholder="your@email.com"></div>
+        <div class="form-field"><label>Password</label><input type="password" id="login-pass" placeholder="••••••••"></div>
+        <button class="btn btn-primary" id="btn-login">Log In</button>
+        <div class="login-error">${U.esc(error)}</div>
+      </div>
+    </div>`;
+    document.getElementById("btn-login").addEventListener("click",async()=>{
+      const email=document.getElementById("login-email").value.trim();
+      const pass=document.getElementById("login-pass").value;
+      if(!email||!pass){UI.showLogin("Please enter email and password");return}
+      document.getElementById("btn-login").textContent="Logging in...";
+      document.getElementById("btn-login").disabled=true;
+      const{data,error}=await sb.auth.signInWithPassword({email,password:pass});
+      if(error){UI.showLogin(error.message);return}
+      App.user=data.user;
+      await UI.boot();
+    });
+    document.getElementById("login-pass").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("btn-login").click()});
+  },
+  showLoading(msg="Loading..."){
+    document.getElementById("app-root").innerHTML=`<div class="loading-screen"><div class="spinner"></div><div class="loading-text">${msg}</div></div>`;
+  },
+  async boot(){
+    UI.showLoading("Loading your renewals...");
+    await DB.fetchAll();
+    document.documentElement.setAttribute("data-theme",App.state.settings.theme||"light");
+    App.state.currentView=App.state.settings.default_view||"board";
+    UI.renderShell();
+    UI.renderView();
+    UI.initEvents();
+    UI.toast("System loaded ✓","success");
+  },
+  renderShell(){
+    document.getElementById("app-root").innerHTML=`
+    <header class="app-header">
+      <div class="app-logo">🏢 <span>E&S Renewal</span> Command Center</div>
+      <div class="search-box"><input type="text" id="search-input" placeholder="Search renewals... (press /)"></div>
+      <div class="header-actions">
+        <button class="btn btn-ghost btn-icon" id="btn-theme" title="Toggle theme">${App.state.settings.theme==="light"?"🌙":"☀️"}</button>
+        <button class="btn btn-secondary btn-icon" id="btn-backup" title="Download backup">💾 <span>Backup</span></button>
+        <button class="btn btn-secondary btn-icon" id="btn-restore" title="Restore backup">📂 <span>Restore</span></button>
+        <button class="btn btn-secondary btn-icon" id="btn-import" title="Import CSV">📥 <span>Import</span></button>
+        <button class="btn btn-primary" id="btn-new">+ <span>New</span></button>
+        <button class="btn btn-ghost btn-icon" id="btn-logout" title="Log out">🚪</button>
+      </div>
+    </header>
+    <nav class="app-nav">
+      <div class="view-tabs">
+        <button class="view-tab ${App.state.currentView==="board"?"active":""}" data-view="board">📋 Board</button>
+        <button class="view-tab ${App.state.currentView==="list"?"active":""}" data-view="list">📄 List</button>
+        <button class="view-tab ${App.state.currentView==="calendar"?"active":""}" data-view="calendar">📅 Calendar</button>
+        <button class="view-tab ${App.state.currentView==="stats"?"active":""}" data-view="stats">📊 Stats</button>
+      </div>
+      <div class="nav-divider"></div>
+      <div class="quick-filters">
+        <button class="filter-btn danger" data-filter="late">🚨 Late</button>
+        <button class="filter-btn" data-filter="postbind">⏳ Post-Bind</button>
+        <button class="filter-btn" data-filter="followup">📞 Follow Up</button>
+        <button class="filter-btn" data-filter="mypipeline">📋 My Pipeline</button>
+        <button class="filter-btn" data-filter="all">All</button>
+      </div>
+    </nav>
+    <main class="app-main" id="view-container"></main>`;
+  },
+  renderAll(){UI.renderShell();UI.renderView();UI.initEvents()},
+  renderView(){
+    const c=document.getElementById("view-container");if(!c)return;
+    const v=App.state.currentView;
+    if(v==="board")c.innerHTML=UI.renderBoard();
+    else if(v==="list")c.innerHTML=UI.renderList();
+    else if(v==="calendar")c.innerHTML=UI.renderCalendar();
+    else if(v==="stats")c.innerHTML=UI.renderStats();
+    UI.attachViewEvents();
+  },
+  renderBoard(){
+    const renewals=L.filter(App.state.renewals);let html='<div class="board">';
+    STAGES.forEach(stage=>{
+      const sr=renewals.filter(r=>r.current_stage===stage.id);
+      html+=`<div class="column" data-stage="${stage.id}" style="--col-color:${stage.color}"><div class="column-header"><span>${stage.label}</span><span class="column-count">${sr.length}</span></div><div class="column-body" data-stage="${stage.id}">${sr.map(r=>UI.renderCard(r,stage)).join("")}</div></div>`;
+    });
+    return html+"</div>";
+  },
+  renderCard(r,stage){
+    const d=U.daysUntil(r.renewal_date);let db="";
+    if(d!==null){let c="badge-success",t=`${d}d left`;if(d<0){c="badge-danger";t=`${Math.abs(d)}d overdue`}else if(d<30)c="badge-warning";db=`<span class="card-badge ${c}">${t}</span>`}
+    let pb="";const p=L.pct(r);
+    if(p!==null){const c=p>10?"badge-danger":p>0?"badge-warning":"badge-success";const a=p>0?"↑":p<0?"↓":"=";pb=`<span class="card-badge ${c}">${a} ${Math.abs(p).toFixed(1)}%</span>`}
+    let ind="";if(r.late_requirement_flag)ind+=`<div class="indicator indicator-late" title="Late requirement">!</div>`;if(!r.ezlynx_updated)ind+=`<div class="indicator indicator-ezlynx" title="EZLynx not updated">⚠</div>`;
+    return`<div class="card" draggable="true" data-id="${r.id}" style="--col-color:${stage.color}">${ind?`<div class="card-indicators">${ind}</div>`:""}<div class="card-title">${U.esc(r.insured_name)}</div><div class="card-meta">${db}${pb}${r.renewal_date?`<span class="card-badge badge-neutral">${U.fmtDate(r.renewal_date)}</span>`:""}</div>${r.next_action?`<div class="card-action">→ ${U.esc(r.next_action)}</div>`:""}</div>`;
+  },
+  renderList(){
+    const renewals=L.filter(App.state.renewals);
+    const sorted=[...renewals].sort((a,b)=>{let va=a[App.state.sortField],vb=b[App.state.sortField];if(App.state.sortField==="premiumChange"){va=L.pct(a)??-999;vb=L.pct(b)??-999}if(typeof va==="string")va=va.toLowerCase();if(typeof vb==="string")vb=vb.toLowerCase();if(va<vb)return App.state.sortDir==="asc"?-1:1;if(va>vb)return App.state.sortDir==="asc"?1:-1;return 0});
+    if(!sorted.length)return`<div class="empty-state"><div class="empty-state-icon">📋</div><h3>No renewals found</h3><p>Create a new renewal or import from CSV.</p></div>`;
+    const si=f=>App.state.sortField===f?(App.state.sortDir==="asc"?" ↑":" ↓"):"";
+    let html=`<table class="list-table"><thead><tr><th data-sort="insured_name">Insured${si("insured_name")}</th><th data-sort="renewal_date">Renewal Date${si("renewal_date")}</th><th>Days Left</th><th data-sort="current_stage">Stage${si("current_stage")}</th><th data-sort="premiumChange">Premium %${si("premiumChange")}</th><th>Signature</th><th>Payment</th><th>Next Action</th></tr></thead><tbody>`;
+    sorted.forEach(r=>{const d=U.daysUntil(r.renewal_date);const st=L.stage(r.current_stage);const p=L.pct(r);let rc="";if(d!==null&&d<0)rc="row-late";else if(d!==null&&d<30)rc="row-warning";let dt="—",dc="badge-neutral";if(d!==null){if(d<0){dt=`${Math.abs(d)}d overdue`;dc="badge-danger"}else if(d<30){dt=`${d}d`;dc="badge-warning"}else{dt=`${d}d`;dc="badge-success"}}let pt="—",pc="badge-neutral";if(p!==null){if(p>10)pc="badge-danger";else if(p>0)pc="badge-warning";else pc="badge-success";pt=`${p>0?"+":""}${p.toFixed(1)}%`}
+    html+=`<tr class="${rc}" data-id="${r.id}"><td><strong>${U.esc(r.insured_name)}</strong></td><td>${U.fmtDate(r.renewal_date)}</td><td><span class="card-badge ${dc}">${dt}</span></td><td><span class="stage-pill" style="background:${st.color}">${st.label}</span></td><td><span class="card-badge ${pc}">${pt}</span></td><td>${r.signature_status}</td><td>${r.payment_status}</td><td style="font-size:12px;color:var(--text-secondary);font-style:italic">${U.esc(r.next_action||"")}</td></tr>`});
+    return html+"</tbody></table>";
+  },
+  renderCalendar(){
+    const d=App.state.calendarDate,y=d.getFullYear(),m=d.getMonth();const fd=new Date(y,m,1),ld=new Date(y,m+1,0);const dim=ld.getDate(),sdow=fd.getDay();const mn=d.toLocaleDateString("en-US",{month:"long",year:"numeric"});
+    const renewals=App.state.renewals.filter(r=>r.renewal_date&&!TERMINAL.includes(r.current_stage));
+    let html=`<div class="calendar-container"><div class="calendar-header"><button class="btn btn-secondary" id="cal-prev">← Prev</button><h2 class="calendar-title">${mn}</h2><button class="btn btn-secondary" id="cal-next">Next →</button></div><div class="calendar-grid">`;
+    ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].forEach(d=>{html+=`<div class="calendar-day-header">${d}</div>`});
+    for(let i=0;i<sdow;i++)html+=`<div class="calendar-cell other-month"></div>`;
+    const today=U.today();
+    for(let day=1;day<=dim;day++){const date=new Date(y,m,day);const ds=date.toISOString().split("T")[0];const dr=renewals.filter(r=>r.renewal_date===ds);const isT=date.getTime()===today.getTime();let cc="calendar-cell";if(isT)cc+=" today";if(dr.length)cc+=" has-renewals";
+    html+=`<div class="${cc}" data-date="${ds}"><div class="calendar-date">${day}</div>${dr.slice(0,3).map(r=>{const st=L.stage(r.current_stage);return`<div class="calendar-renewal" style="background:${st.color}" data-id="${r.id}" title="${U.esc(r.insured_name)}">${U.esc(r.insured_name)}</div>`}).join("")}${dr.length>3?`<div style="font-size:10px;color:var(--text-secondary)">+${dr.length-3} more</div>`:""}</div>`}
+    return html+"</div></div>";
+  },
+  renderStats(){
+    const all=App.state.renewals;const active=all.filter(r=>!TERMINAL.includes(r.current_stage)&&r.owner==="Me");
+    const cr=all.filter(r=>r.current_stage==="closed_renewed").length;const cn=all.filter(r=>r.current_stage==="closed_not_renewed").length;const tc=cr+cn;const rr=tc>0?((cr/tc)*100).toFixed(0):"—";
+    const lc=L.filter(all).filter(r=>{const d=U.daysUntil(r.renewal_date);return(r.current_stage==="awaiting_offer"&&d!==null&&d<=30)||r.late_requirement_flag}).length;
+    const pbc=all.filter(r=>r.current_stage==="post_bind"&&!r.financial_packet_sent).length;
+    const top=L.topPriorities(5);const max=Math.max(...STAGES.map(s=>active.filter(r=>r.current_stage===s.id).length),1);
+    return`<div class="stats-grid"><div class="stat-card"><div class="stat-label">Active Renewals</div><div class="stat-value">${active.length}</div></div><div class="stat-card danger"><div class="stat-label">Late / At-Risk</div><div class="stat-value">${lc}</div></div><div class="stat-card warning"><div class="stat-label">Stuck Post-Bind</div><div class="stat-value">${pbc}</div></div><div class="stat-card success"><div class="stat-label">Retention Rate</div><div class="stat-value">${rr}${rr!=="—"?"%":""}</div></div></div>
+    <div class="stats-section"><h3>🎯 Top Priorities</h3>${top.length===0?`<p style="color:var(--text-secondary);font-size:13px">No urgent items!</p>`:`<ul class="priority-list">${top.map((r,i)=>`<li class="priority-item" data-id="${r.id}"><span class="priority-rank">${i+1}</span><div class="priority-title">${U.esc(r.insured_name)}</div><div class="priority-reasons">${L.priorityReasons(r).map(x=>"• "+U.esc(x)).join(" | ")}</div></li>`).join("")}</ul>`}</div>
+    <div class="stats-section"><h3>📊 Pipeline Distribution</h3>${STAGES.map(s=>{const c=active.filter(r=>r.current_stage===s.id).length;const p=(c/max)*100;return`<div class="pipeline-bar"><div class="pipeline-label">${s.label}</div><div class="pipeline-track"><div class="pipeline-fill" style="width:${p}%;background:${s.color}">${c||""}</div></div><div class="pipeline-count">${c}</div></div>`}).join("")}</div>`;
+  },
+  attachViewEvents(){
+    document.querySelectorAll(".card[draggable]").forEach(card=>{card.addEventListener("dragstart",e=>{e.dataTransfer.setData("text/plain",card.dataset.id);card.classList.add("dragging")});card.addEventListener("dragend",()=>card.classList.remove("dragging"));card.addEventListener("click",()=>UI.openEditModal(card.dataset.id))});
+    document.querySelectorAll(".column-body").forEach(col=>{col.addEventListener("dragover",e=>{e.preventDefault();col.classList.add("drag-over")});col.addEventListener("dragleave",()=>col.classList.remove("drag-over"));col.addEventListener("drop",async e=>{e.preventDefault();col.classList.remove("drag-over");const id=e.dataTransfer.getData("text/plain");await Act.updateRenewal(id,{current_stage:col.dataset.stage});UI.toast("Stage updated","success")})});
+    document.querySelectorAll(".list-table tbody tr").forEach(row=>{row.addEventListener("click",()=>UI.openEditModal(row.dataset.id))});
+    document.querySelectorAll(".list-table th[data-sort]").forEach(th=>{th.addEventListener("click",()=>{const f=th.dataset.sort;if(App.state.sortField===f)App.state.sortDir=App.state.sortDir==="asc"?"desc":"asc";else{App.state.sortField=f;App.state.sortDir="asc"}UI.renderView()})});
+    const cp=document.getElementById("cal-prev"),cn=document.getElementById("cal-next");
+    if(cp)cp.addEventListener("click",()=>{App.state.calendarDate=new Date(App.state.calendarDate.getFullYear(),App.state.calendarDate.getMonth()-1,1);UI.renderView()});
+    if(cn)cn.addEventListener("click",()=>{App.state.calendarDate=new Date(App.state.calendarDate.getFullYear(),App.state.calendarDate.getMonth()+1,1);UI.renderView()});
+    document.querySelectorAll(".calendar-renewal").forEach(el=>{el.addEventListener("click",e=>{e.stopPropagation();UI.openEditModal(el.dataset.id)})});
+    document.querySelectorAll(".priority-item").forEach(el=>{el.addEventListener("click",()=>UI.openEditModal(el.dataset.id))});
+  },
+  openEditModal(id){
+    const r=App.state.renewals.find(r=>r.id===id);if(!r)return;
+    const p=L.pct(r);const pd=p!==null?p.toFixed(1)+"%":"—";const w=L.tenPctWarn(r);
+    const logs=(App.state.activityLogs[id]||[]).slice().reverse();
+    const html=`<div class="modal-overlay" id="modal-overlay"><div class="modal-content"><div class="modal-header"><h2>${U.esc(r.insured_name)}</h2><button class="modal-close" data-action="close">×</button></div><div class="modal-body">
+    <div class="modal-tabs"><button class="modal-tab active" data-tab="core">Core</button><button class="modal-tab" data-tab="fin">Financials</button><button class="modal-tab" data-tab="client">Client</button><button class="modal-tab" data-tab="post">Post-Bind</button><button class="modal-tab" data-tab="rem">Remarketing</button><button class="modal-tab" data-tab="act">Activity</button></div>
+    <div class="tab-content active" data-tab="core"><div class="form-grid">
+      <div class="form-field full"><label>Insured Name</label><input type="text" data-field="insured_name" value="${U.esc(r.insured_name)}"></div>
+      <div class="form-field"><label>Coverage Type</label><input type="text" data-field="coverage_type" value="${U.esc(r.coverage_type)}"></div>
+      <div class="form-field"><label>Renewal Date</label><input type="date" data-field="renewal_date" value="${r.renewal_date||""}"></div>
+      <div class="form-field"><label>Owner</label><select data-field="owner"><option value="Me" ${r.owner==="Me"?"selected":""}>Me</option><option value="Producer-Handled" ${r.owner==="Producer-Handled"?"selected":""}>Producer-Handled</option></select></div>
+      <div class="form-field"><label>Broker</label><input type="text" data-field="broker_name" value="${U.esc(r.broker_name)}"></div>
+      <div class="form-field"><label>Stage</label><select data-field="current_stage">${STAGES.map(s=>`<option value="${s.id}" ${r.current_stage===s.id?"selected":""}>${s.label}</option>`).join("")}</select></div>
+      <div class="form-field"><label>Offer Location</label><select data-field="last_known_offer_location">${["Unknown","My Inbox","Rui","Chris","Andrea","Broker"].map(o=>`<option ${r.last_known_offer_location===o?"selected":""}>${o}</option>`).join("")}</select></div>
+      <div class="form-field full"><label>Next Action</label><input type="text" data-field="next_action" value="${U.esc(r.next_action)}"></div>
+    </div></div>
+    <div class="tab-content" data-tab="fin"><div class="form-grid">
+      <div class="form-field"><label>Expiring Premium</label><input type="number" step="0.01" data-field="expiring_premium" value="${r.expiring_premium||""}"></div>
+      <div class="form-field"><label>Offered Premium</label><input type="number" step="0.01" data-field="offered_premium" value="${r.offered_premium||""}"></div>
+      <div class="form-field"><label>Premium Change % (auto)</label><input type="text" value="${pd}" readonly></div>
+      <div class="form-field"><label>Decision</label><select data-field="decision"><option value="Pending" ${r.decision==="Pending"?"selected":""}>Pending</option><option value="Renew Incumbent" ${r.decision==="Renew Incumbent"?"selected":""}>Renew Incumbent</option><option value="Remarket" ${r.decision==="Remarket"?"selected":""}>Remarket</option></select></div>
+      <div class="form-field"><label>Expiring Deductible</label><input type="text" data-field="expiring_deductible" value="${U.esc(r.expiring_deductible)}"></div>
+      <div class="form-field"><label>Offered Deductible</label><input type="text" data-field="offered_deductible" value="${U.esc(r.offered_deductible)}"></div>
+      <div class="form-field full"><label>Key Coverage Changes / Exclusions</label><textarea data-field="key_coverage_changes">${U.esc(r.key_coverage_changes)}</textarea></div>
+      <div class="form-field full"><label>Override Reason</label><textarea data-field="override_reason">${U.esc(r.override_reason)}</textarea>${w?`<div class="warning-box">⚠️ Premium increase ≥10% with "Renew Incumbent". Please document your override reason.</div>`:""}</div>
+    </div></div>
+    <div class="tab-content" data-tab="client"><div class="form-grid">
+      <div class="form-field"><label>Date Presented</label><input type="date" data-field="date_presented" value="${r.date_presented||""}"></div>
+      <div class="form-field"><label>Signature Status</label><select data-field="signature_status">${["Not Sent","Sent","Signed Online","Signed In-Person"].map(o=>`<option ${r.signature_status===o?"selected":""}>${o}</option>`).join("")}</select></div>
+      <div class="form-field"><label>Payment Status</label><select data-field="payment_status">${["Not Received","Received"].map(o=>`<option ${r.payment_status===o?"selected":""}>${o}</option>`).join("")}</select></div>
+      <div class="form-field"><div class="checkbox-field"><input type="checkbox" id="mb" data-field="mortgage_billed" ${r.mortgage_billed?"checked":""}><label for="mb">Mortgage-Billed</label></div></div>
+      <div class="form-field full"><label>Financing Checklist (FIF)</label><textarea data-field="financing_checklist">${U.esc(r.financing_checklist)}</textarea></div>
+    </div></div>
+    <div class="tab-content" data-tab="post"><div class="form-grid">
+      <div class="form-field"><div class="checkbox-field"><input type="checkbox" id="br" data-field="binder_received" ${r.binder_received?"checked":""}><label for="br">Binder Received</label></div></div>
+      <div class="form-field"><div class="checkbox-field"><input type="checkbox" id="ir" data-field="invoice_received" ${r.invoice_received?"checked":""}><label for="ir">Invoice Received</label></div></div>
+      <div class="form-field"><div class="checkbox-field"><input type="checkbox" id="lrf" data-field="late_requirement_flag" ${r.late_requirement_flag?"checked":""}><label for="lrf">Late Requirement Flag</label></div></div>
+      <div class="form-field"><label>Late Req. Date</label><input type="date" data-field="late_req_date" value="${r.late_req_date||""}"></div>
+      <div class="form-field"><div class="checkbox-field"><input type="checkbox" id="eu" data-field="ezlynx_updated" ${r.ezlynx_updated?"checked":""}><label for="eu">EZLynx Updated</label></div></div>
+      <div class="form-field"><div class="checkbox-field"><input type="checkbox" id="fps" data-field="financial_packet_sent" ${r.financial_packet_sent?"checked":""}><label for="fps">Financial Packet Sent to Chris</label></div></div>
+    </div></div>
+    <div class="tab-content" data-tab="rem"><div class="form-field full"><label>Remarketing Log</label><textarea data-field="remarketing_log" rows="10">${U.esc(r.remarketing_log)}</textarea></div></div>
+    <div class="tab-content" data-tab="act"><div class="form-field full" style="margin-bottom:20px"><label>Notes</label><textarea data-field="notes" rows="4">${U.esc(r.notes)}</textarea></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><label style="font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase">Activity Timeline</label><button class="btn btn-secondary btn-icon" id="btn-log-act">+ Log Activity</button></div>
+      ${logs.length===0?`<p style="color:var(--text-secondary);font-size:13px">No activity logged.</p>`:`<ul class="timeline">${logs.map(l=>`<li class="timeline-item"><div class="timeline-date">${U.fmtDT(l.created_at)}</div><div class="timeline-action">${U.esc(l.action)}</div>${l.details?`<div class="timeline-details">${U.esc(l.details)}</div>`:""}</li>`).join("")}</ul>`}
+    </div>
+    </div><div class="modal-footer"><button class="btn btn-danger" data-action="delete">Delete</button><button class="btn btn-secondary" data-action="close">Cancel</button><button class="btn btn-primary" data-action="save">Save</button></div></div></div>`;
+    document.getElementById("modal-root").innerHTML=html;
+    const ov=document.getElementById("modal-overlay");
+    ov.addEventListener("click",e=>{if(e.target===ov)UI.closeModal()});
+    ov.querySelectorAll("[data-action='close']").forEach(b=>b.addEventListener("click",UI.closeModal));
+    ov.querySelectorAll("[data-action='delete']").forEach(b=>b.addEventListener("click",async()=>{if(confirm("Delete this renewal?")){await Act.deleteRenewal(id);UI.closeModal()}}));
+    ov.querySelectorAll("[data-action='save']").forEach(b=>b.addEventListener("click",async()=>{const ch={};ov.querySelectorAll("[data-field]").forEach(el=>{const f=el.dataset.field;if(el.type==="checkbox")ch[f]=el.checked;else if(el.type==="number")ch[f]=parseFloat(el.value)||0;else ch[f]=el.value});await Act.updateRenewal(id,ch);UI.closeModal();UI.toast("Saved","success")}));
+    ov.querySelectorAll(".modal-tab").forEach(tab=>{tab.addEventListener("click",()=>{ov.querySelectorAll(".modal-tab").forEach(t=>t.classList.remove("active"));ov.querySelectorAll(".tab-content").forEach(c=>c.classList.remove("active"));tab.classList.add("active");ov.querySelector(`.tab-content[data-tab="${tab.dataset.tab}"]`).classList.add("active")})});
+    const lb=ov.querySelector("#btn-log-act");if(lb)lb.addEventListener("click",async()=>{const action=prompt("Activity (e.g., 'Email sent to broker'):");if(action){const details=prompt("Details (optional):")||"";await DB.logActivity(id,action,details);UI.closeModal();UI.openEditModal(id);UI.toast("Activity logged","success")}});
+  },
+  openNewModal(){
+    const html=`<div class="modal-overlay" id="modal-overlay"><div class="modal-content"><div class="modal-header"><h2>New Renewal</h2><button class="modal-close" data-action="close">×</button></div><div class="modal-body"><div class="form-grid">
+      <div class="form-field full"><label>Insured Name *</label><input type="text" data-field="insured_name" required></div>
+      <div class="form-field"><label>Coverage Type</label><input type="text" data-field="coverage_type"></div>
+      <div class="form-field"><label>Renewal Date</label><input type="date" data-field="renewal_date"></div>
+      <div class="form-field"><label>Expiring Premium</label><input type="number" step="0.01" data-field="expiring_premium"></div>
+      <div class="form-field"><label>Broker</label><input type="text" data-field="broker_name"></div>
+    </div></div><div class="modal-footer"><button class="btn btn-secondary" data-action="close">Cancel</button><button class="btn btn-primary" data-action="create">Create</button></div></div></div>`;
+    document.getElementById("modal-root").innerHTML=html;
+    const ov=document.getElementById("modal-overlay");
+    ov.addEventListener("click",e=>{if(e.target===ov)UI.closeModal()});
+    ov.querySelectorAll("[data-action='close']").forEach(b=>b.addEventListener("click",UI.closeModal));
+    ov.querySelectorAll("[data-action='create']").forEach(b=>b.addEventListener("click",async()=>{const d={};ov.querySelectorAll("[data-field]").forEach(el=>{d[el.dataset.field]=el.value});if(!d.insured_name||!d.insured_name.trim()){UI.toast("Insured Name is required","error");return}await Act.addRenewal(d)}));
+  },
+  closeModal(){document.getElementById("modal-root").innerHTML=""},
+  initEvents(){
+    document.querySelectorAll(".view-tab").forEach(t=>{t.addEventListener("click",()=>Act.setView(t.dataset.view))});
+    document.querySelectorAll(".filter-btn").forEach(b=>{b.addEventListener("click",()=>Act.setFilter(b.dataset.filter))});
+    document.getElementById("btn-new").addEventListener("click",()=>UI.openNewModal());
+    document.getElementById("btn-theme").addEventListener("click",()=>Act.toggleTheme());
+    document.getElementById("btn-backup").addEventListener("click",()=>DB.exportBackup());
+    document.getElementById("btn-restore").addEventListener("click",()=>document.getElementById("file-restore").click());
+    document.getElementById("btn-import").addEventListener("click",()=>document.getElementById("file-import").click());
+    document.getElementById("file-restore").addEventListener("change",e=>{if(e.target.files[0])DB.importBackup(e.target.files[0]);e.target.value=""});
+    document.getElementById("file-import").addEventListener("change",e=>{if(e.target.files[0])DB.importCSV(e.target.files[0]);e.target.value=""});
+    document.getElementById("search-input").addEventListener("input",U.debounce(e=>{Act.setSearch(e.target.value)},200));
+    document.getElementById("btn-logout").addEventListener("click",async()=>{await sb.auth.signOut();App.user=null;UI.showLogin()});
+    document.addEventListener("keydown",e=>{const tag=document.activeElement.tagName;if(tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT"){if(e.key==="Escape")document.activeElement.blur();return}if(e.key==="Escape"){UI.closeModal();return}if(e.key==="/"){e.preventDefault();document.getElementById("search-input").focus();return}if(e.key.toLowerCase()==="n"){UI.openNewModal();return}if(e.key.toLowerCase()==="t"){Act.toggleTheme();return}if(e.ctrlKey&&e.key.toLowerCase()==="d"){e.preventDefault();DB.exportBackup();return}if(e.key==="1")Act.setView("board");if(e.key==="2")Act.setView("list");if(e.key==="3")Act.setView("calendar");if(e.key==="4")Act.setView("stats")});
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════════
+(async()=>{
+  const{data:{session}}=await sb.auth.getSession();
+  if(session){App.user=session.user;await UI.boot()}
+  else{UI.showLogin()}
+  sb.auth.onAuthStateChange(async(event,session)=>{
+    if(event==="SIGNED_IN"&&session){App.user=session.user;await UI.boot()}
+    if(event==="SIGNED_OUT"){App.user=null;UI.showLogin()}
+  });
+})();
+</script>
 </body>
 </html>
